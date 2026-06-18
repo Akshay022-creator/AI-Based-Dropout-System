@@ -1,0 +1,973 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Guardian Network RNSIT ERP API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: profiles
+    description: User profiles
+  - name: academics
+    description: Academic records
+  - name: timetables
+    description: Timetable management
+  - name: resources
+    description: NoteGo Learning Hub
+  - name: grievances
+    description: Grievance / support reports
+  - name: dashboard
+    description: Dashboard summaries
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout current user
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /profiles:
+    get:
+      operationId: listProfiles
+      tags: [profiles]
+      summary: List profiles (faculty/admin)
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [student, parent, faculty, admin]
+        - name: section
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Profile"
+
+  /profiles/{id}:
+    get:
+      operationId: getProfile
+      tags: [profiles]
+      summary: Get a user profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+    put:
+      operationId: updateProfile
+      tags: [profiles]
+      summary: Update a user profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileBody"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+
+  /academics/{studentId}:
+    get:
+      operationId: getAcademics
+      tags: [academics]
+      summary: Get student academic record
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Academic record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Academic"
+    put:
+      operationId: updateAcademics
+      tags: [academics]
+      summary: Update academic record (faculty)
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAcademicBody"
+      responses:
+        "200":
+          description: Updated academic record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Academic"
+
+  /academics/{studentId}/subjects:
+    get:
+      operationId: getSubjectRecords
+      tags: [academics]
+      summary: Get per-subject attendance and marks for a student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Subject records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubjectRecord"
+
+  /timetables:
+    get:
+      operationId: listTimetables
+      tags: [timetables]
+      summary: List timetables
+      parameters:
+        - name: section
+          in: query
+          schema:
+            type: string
+        - name: batch
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Timetables
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Timetable"
+    post:
+      operationId: createTimetable
+      tags: [timetables]
+      summary: Create a timetable entry (faculty)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTimetableBody"
+      responses:
+        "201":
+          description: Created timetable entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Timetable"
+
+  /timetables/{id}:
+    put:
+      operationId: updateTimetable
+      tags: [timetables]
+      summary: Update a timetable entry (faculty)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTimetableBody"
+      responses:
+        "200":
+          description: Updated timetable entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Timetable"
+    delete:
+      operationId: deleteTimetable
+      tags: [timetables]
+      summary: Delete a timetable entry (faculty)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /resources:
+    get:
+      operationId: listResources
+      tags: [resources]
+      summary: List learning resources (NoteGo)
+      parameters:
+        - name: stream
+          in: query
+          schema:
+            type: string
+        - name: semester
+          in: query
+          schema:
+            type: integer
+        - name: subject
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+      responses:
+        "200":
+          description: Learning resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+    post:
+      operationId: createResource
+      tags: [resources]
+      summary: Upload a learning resource (student)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateResourceBody"
+      responses:
+        "201":
+          description: Created resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+
+  /resources/{id}/approve:
+    put:
+      operationId: approveResource
+      tags: [resources]
+      summary: Approve or reject a resource (faculty)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApproveResourceBody"
+      responses:
+        "200":
+          description: Updated resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+
+  /resources/{id}:
+    delete:
+      operationId: deleteResource
+      tags: [resources]
+      summary: Delete a resource (faculty/admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /grievances:
+    get:
+      operationId: listGrievances
+      tags: [grievances]
+      summary: List grievances (faculty/admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, in_progress, resolved]
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [high, medium, low]
+      responses:
+        "200":
+          description: Grievances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Grievance"
+    post:
+      operationId: createGrievance
+      tags: [grievances]
+      summary: Submit a grievance (student)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGrievanceBody"
+      responses:
+        "201":
+          description: Submitted grievance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Grievance"
+
+  /grievances/{id}/status:
+    put:
+      operationId: updateGrievanceStatus
+      tags: [grievances]
+      summary: Update grievance status (faculty/admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGrievanceStatusBody"
+      responses:
+        "200":
+          description: Updated grievance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Grievance"
+
+  /dashboard/student:
+    get:
+      operationId: getStudentDashboard
+      tags: [dashboard]
+      summary: Student dashboard summary
+      responses:
+        "200":
+          description: Student dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentDashboard"
+
+  /dashboard/faculty:
+    get:
+      operationId: getFacultyDashboard
+      tags: [dashboard]
+      summary: Faculty dashboard summary
+      responses:
+        "200":
+          description: Faculty dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FacultyDashboard"
+
+  /dashboard/parent:
+    get:
+      operationId: getParentDashboard
+      tags: [dashboard]
+      summary: Parent dashboard summary with children status
+      responses:
+        "200":
+          description: Parent dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParentDashboard"
+
+  /proctor-messages:
+    get:
+      operationId: listProctorMessages
+      tags: [profiles]
+      summary: List proctor chat messages for current user
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProctorMessage"
+    post:
+      operationId: sendProctorMessage
+      tags: [profiles]
+      summary: Send a proctor message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendProctorMessageBody"
+      responses:
+        "201":
+          description: Sent message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProctorMessage"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [email, password]
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/Profile"
+        message:
+          type: string
+      required: [user, message]
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [student, parent, faculty, admin]
+        usn:
+          type: string
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        semester:
+          type: integer
+          nullable: true
+        batchPreference:
+          type: string
+          nullable: true
+        isCr:
+          type: boolean
+        proctorId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, email, name, role, isCr, createdAt]
+
+    UpdateProfileBody:
+      type: object
+      properties:
+        name:
+          type: string
+        section:
+          type: string
+        semester:
+          type: integer
+        batchPreference:
+          type: string
+        isCr:
+          type: boolean
+        proctorId:
+          type: integer
+
+    Academic:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        sgpa:
+          type: number
+        cgpa:
+          type: number
+        overallAttendance:
+          type: number
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, studentId, sgpa, cgpa, overallAttendance, updatedAt]
+
+    UpdateAcademicBody:
+      type: object
+      properties:
+        sgpa:
+          type: number
+        cgpa:
+          type: number
+        overallAttendance:
+          type: number
+
+    SubjectRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        subject:
+          type: string
+        attendance:
+          type: number
+        cie1:
+          type: number
+          nullable: true
+        cie2:
+          type: number
+          nullable: true
+        aat1:
+          type: number
+          nullable: true
+        aat2:
+          type: number
+          nullable: true
+        lab:
+          type: number
+          nullable: true
+        see:
+          type: number
+          nullable: true
+      required: [id, studentId, subject, attendance]
+
+    Timetable:
+      type: object
+      properties:
+        id:
+          type: integer
+        section:
+          type: string
+        batch:
+          type: string
+        dayOfWeek:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        subject:
+          type: string
+        facultyId:
+          type: integer
+          nullable: true
+        room:
+          type: string
+          nullable: true
+      required: [id, section, batch, dayOfWeek, startTime, endTime, subject]
+
+    CreateTimetableBody:
+      type: object
+      properties:
+        section:
+          type: string
+        batch:
+          type: string
+        dayOfWeek:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        subject:
+          type: string
+        facultyId:
+          type: integer
+        room:
+          type: string
+      required: [section, batch, dayOfWeek, startTime, endTime, subject]
+
+    Resource:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        stream:
+          type: string
+        semester:
+          type: integer
+        subject:
+          type: string
+        chapter:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [notes, video, assignment]
+        url:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        uploadedById:
+          type: integer
+        reviewedById:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, title, stream, semester, subject, type, status, uploadedById, createdAt]
+
+    CreateResourceBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        stream:
+          type: string
+        semester:
+          type: integer
+        subject:
+          type: string
+        chapter:
+          type: string
+        type:
+          type: string
+          enum: [notes, video, assignment]
+        url:
+          type: string
+      required: [title, stream, semester, subject, type]
+
+    ApproveResourceBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [approved, rejected]
+        reason:
+          type: string
+      required: [status]
+
+    Grievance:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        priority:
+          type: string
+          enum: [high, medium, low]
+        isAnonymous:
+          type: boolean
+        status:
+          type: string
+          enum: [open, in_progress, resolved]
+        routedTo:
+          type: string
+          enum: [proctor, hod, dean]
+        studentId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, title, description, category, priority, isAnonymous, status, routedTo, createdAt]
+
+    CreateGrievanceBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        priority:
+          type: string
+          enum: [high, medium, low]
+        isAnonymous:
+          type: boolean
+        routedTo:
+          type: string
+          enum: [proctor, hod, dean]
+      required: [title, description, category, priority, isAnonymous, routedTo]
+
+    UpdateGrievanceStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [open, in_progress, resolved]
+        note:
+          type: string
+      required: [status]
+
+    StudentDashboard:
+      type: object
+      properties:
+        profile:
+          $ref: "#/components/schemas/Profile"
+        academics:
+          $ref: "#/components/schemas/Academic"
+        subjectRecords:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubjectRecord"
+        upcomingTimetable:
+          type: array
+          items:
+            $ref: "#/components/schemas/Timetable"
+        recentGrievances:
+          type: array
+          items:
+            $ref: "#/components/schemas/Grievance"
+        dailyQuote:
+          type: string
+      required: [profile, academics, subjectRecords, upcomingTimetable, recentGrievances, dailyQuote]
+
+    FacultyDashboard:
+      type: object
+      properties:
+        profile:
+          $ref: "#/components/schemas/Profile"
+        totalStudents:
+          type: integer
+        atRiskCount:
+          type: integer
+        highPerformersCount:
+          type: integer
+        pendingResourcesCount:
+          type: integer
+        openGrievancesCount:
+          type: integer
+        attendanceSummary:
+          type: array
+          items:
+            type: object
+            properties:
+              section:
+                type: string
+              averageAttendance:
+                type: number
+            required: [section, averageAttendance]
+      required: [profile, totalStudents, atRiskCount, highPerformersCount, pendingResourcesCount, openGrievancesCount, attendanceSummary]
+
+    ParentDashboard:
+      type: object
+      properties:
+        profile:
+          $ref: "#/components/schemas/Profile"
+        children:
+          type: array
+          items:
+            type: object
+            properties:
+              profile:
+                $ref: "#/components/schemas/Profile"
+              academics:
+                $ref: "#/components/schemas/Academic"
+              alerts:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    message:
+                      type: string
+                    severity:
+                      type: string
+                      enum: [critical, warning, info]
+                  required: [type, message, severity]
+            required: [profile, academics, alerts]
+      required: [profile, children]
+
+    ProctorMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        senderId:
+          type: integer
+        receiverId:
+          type: integer
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, senderId, receiverId, message, createdAt]
+
+    SendProctorMessageBody:
+      type: object
+      properties:
+        receiverId:
+          type: integer
+        message:
+          type: string
+      required: [receiverId, message]
