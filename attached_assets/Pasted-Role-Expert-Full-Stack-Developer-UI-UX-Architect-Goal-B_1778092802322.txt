@@ -1,0 +1,80 @@
+Role: Expert Full-Stack Developer & UI/UX Architect.
+Goal: Build "The Guardian Network" — a production-ready, high-performance ERP system for RNSIT aimed at reducing student dropout rates through NEP 2020-aligned technology.
+
+STRICT UI/UX MANDATE (CRITICAL):
+
+Perfect Laptop Fit: The UI must be edge-to-edge. Use min-h-screen and w-full. Increase the base font size to 1.05rem. Use max-w-7xl for main dashboard containers to ensure it fills a 13-inch to 16-inch laptop screen perfectly.
+
+Visual Differentiation: Each portal MUST have a distinct visual identity so they do not look the same:
+
+Student Portal: Indigo/Deep Navy theme (#0c2340).
+
+Parent Portal: Emerald/Forest Green theme.
+
+Faculty Portal: Crimson/Rose theme.
+
+Professional Branding: Implement a TenantConfig context. Default to RNSIT branding (Logo: GN, Name: Guardian Network RNSIT). Allow for easy modification of logo, primary colors, and email domain policy (e.g., @rnsit.ac.in).
+
+CORE ARCHITECTURE & SECURITY:
+
+Full-Stack: Use Next.js 15 (App Router), Tailwind CSS, Lucide Icons, and Supabase for Auth/Database.
+
+Security Middleware: Create a middleware.ts to strictly enforce role-based access. If a student tries to access /faculty, redirect them to /login.
+
+Production Auth: Implement real password hashing and a 2-Step Verification flow for password changes.
+
+Landing Page: Create a high-quality Home Page (/) with a "Hero Section" and a prominent "Sign In" button leading to the auth flow.
+
+DETAILED PORTAL SPECS:
+
+1. Student Portal (/student):
+
+Dashboard: "Welcome, [Name] 👋" + daily random quote.
+
+Academic Radar: Large cards for SGPA and CGPA. Graphical Subject-wise Attendance bars (Red if <85%).
+
+VTU Marks Table: Real table for CIE 1, CIE 2, AAT 1, AAT 2, Lab, and SEE.
+
+Scholarship Matcher: 3-Step Wizard. Ask for details/docs (Redact sensitive IDs like Aadhaar as [Aadhaar Redacted]). Ask "India or International?". Show eligible scholarships with direct links to official external application sites.
+
+Reporting Portal: Grievance form with Category selection, Priority (High/Med/Low), and Anonymous Toggle. Route to specific roles (Proctor, HOD, Dean).
+
+Flexible Schooling: Batch switcher (Morning/Evening) with a live timetable view.
+
+NoteGo Learning Hub: Hierarchical library (Stream > Sem > Subject > Chapter). Students can view notes/videos and upload their own for faculty approval.
+
+2. Parent Portal (/parent):
+
+Child Switcher: Dashboard must allow switching between multiple children if linked to the parent.
+
+Vigilance Mode: Display high-visibility Red Alerts if the child's attendance or marks drop below the 85% threshold.
+
+Comms: Placeholder for Twilio-based multilingual WhatsApp/Voice alerts.
+
+Proctor Chat: A dedicated secure messaging page to talk to the child's mentor.
+
+3. Faculty Portal (/faculty):
+
+Student Roster: List students with "Segregation" logic (High Performance vs. At-Risk/Red Alert).
+
+Management: Faculty must be able to modify Attendance and Marks for their assigned classes/sections.
+
+NoteGo Moderation: A queue to Approve or Reject student-uploaded notes for the Learning Hub.
+
+Admin Tools: CRUD (Create/Read/Update/Delete) for Timetables and Flexible Schooling schedules.
+
+DATABASE SCHEMA (SUPABASE):
+
+profiles (includes is_cr, role, batch_preference)
+
+tenants (customizable branding data)
+
+student_academics (all marks and attendance percentages)
+
+learning_resources (with approval status for NoteGo)
+
+support_reports (grievance data)
+
+Database Seeding: Generate a seed.sql with sample RNSIT data so the app works immediately upon login.
+
+FINAL INSTRUCTION: Build this as a cohesive, non-demo, working application. Ensure all buttons lead to actual functional routes. No "Nonsense" UI—make it look like a professional SaaS product.
